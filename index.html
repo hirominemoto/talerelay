@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaleRelay — 一文ずつ、世界がひらく。</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface-2: #F0EDE8;
+    --text: #1A1915;
+    --text-sub: #6B6860;
+    --text-muted: #A09D98;
+    --accent: #3B6BCA;
+    --accent-bg: #EBF0FA;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --radius: 10px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+    --font-voice: 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #18181A;
+      --surface: #242428;
+      --surface-2: #2E2E33;
+      --text: #F0EDE8;
+      --text-sub: #9B9890;
+      --text-muted: #65625E;
+      --accent: #6B9BEA;
+      --accent-bg: #1C2540;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .app { width: 100%; max-width: 640px; }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+
+  .logo-mark {
+    width: 26px;
+    height: 26px;
+    background: var(--text);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-mark svg { width: 14px; height: 14px; fill: var(--bg); }
+
+  .header-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ===== SETUP ===== */
+  .setup { }
+
+  .eyebrow {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .hero {
+    font-family: var(--font-voice);
+    font-size: clamp(32px, 8vw, 46px);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--text-sub);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .setup-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+
+  .field { margin-bottom: 1.25rem; }
+  .field:last-of-type { margin-bottom: 0; }
+
+  .field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 15px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  .turn-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .turn-opt {
+    padding: 10px 0;
+    text-align: center;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-sub);
+    font-size: 15px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.15s;
+  }
+
+  .turn-opt:hover { background: var(--surface-2); color: var(--text); }
+  .turn-opt.on { border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+
+  .divider { height: 0.5px; background: var(--border); margin: 1.25rem 0; }
+
+  .start-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    letter-spacing: 0.01em;
+    transition: opacity 0.15s;
+  }
+  .start-btn:hover { opacity: 0.82; }
+
+  /* ===== STORY ===== */
+  .story { display: none; }
+
+  .story-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .story-eyebrow { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
+  .story-genre { font-family: var(--font-voice); font-size: 22px; color: var(--text); }
+
+  .progress-wrap { margin-bottom: 1.25rem; }
+  .progress-track { height: 2px; background: var(--border-strong); border-radius: 2px; }
+  .progress-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; width: 0%; }
+
+  .feed {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    min-height: 220px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .entry { display: flex; gap: 10px; margin-bottom: 1.25rem; }
+  .entry:last-child { margin-bottom: 0; }
+
+  .av {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .av-you { background: var(--accent-bg); color: var(--accent); }
+  .av-ai { background: var(--surface-2); border: 0.5px solid var(--border-strong); color: var(--text-sub); }
+
+  .entry-inner { flex: 1; padding-top: 3px; }
+  .entry-who { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
+  .entry-text { font-family: var(--font-voice); font-size: 15px; color: var(--text); line-height: 1.75; }
+
+  .thinking-dots { display: flex; gap: 5px; align-items: center; padding: 6px 0; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: blink 1.2s ease-in-out infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+  .input-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    transition: opacity 0.2s;
+  }
+
+  .input-label { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+
+  textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: var(--font-voice);
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.65;
+    outline: none;
+  }
+  textarea::placeholder { color: var(--text-muted); }
+
+  .char-hint { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 4px; }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  .btn-send {
+    flex: 1;
+    padding: 11px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: opacity 0.15s;
+  }
+  .btn-send:hover { opacity: 0.82; }
+  .btn-send:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-end {
+    padding: 11px 16px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-sub);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-end:hover { background: var(--surface-2); color: var(--text); }
+
+  .btn-restart {
+    padding: 11px 14px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-sub);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.15s;
+  }
+  .btn-restart:hover { background: var(--surface-2); color: var(--text); }
+
+  /* ===== FINISH ===== */
+  .finish { display: none; }
+
+  .finish-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .finish-eyebrow { font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem; }
+
+  .title-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+
+  .title-opt {
+    padding: 13px 16px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-voice);
+    font-size: 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .title-opt:hover { background: var(--surface-2); }
+  .title-opt.on { border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent); }
+
+  .complete-story {
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .complete-title {
+    font-family: var(--font-voice);
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    font-weight: 400;
+  }
+
+  .complete-body {
+    font-family: var(--font-voice);
+    font-size: 14px;
+    color: var(--text-sub);
+    line-height: 1.9;
+    white-space: pre-line;
+  }
+
+  .btn-copy {
+    width: 100%;
+    padding: 11px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-copy:hover { background: var(--surface-2); }
+  .btn-copy:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-new {
+    width: 100%;
+    padding: 12px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  .btn-new:hover { opacity: 0.82; }
+
+  .loading-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 1.25rem 0.75rem 3rem; }
+    .feed { max-height: 320px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><path d="M2 2h10v1.5H2zM2 5h7v1.5H2zM2 8h10v1.5H2zM2 11h5v1.5H2z"/></svg>
+      </div>
+      TaleRelay
+    </div>
+    <div class="header-meta" id="headerMeta"></div>
+  </header>
+
+  <!-- SETUP -->
+  <div id="setup" class="setup">
+    <div class="eyebrow">+ AIとつなぐ、まだ見ぬ物語</div>
+    <h1 class="hero">一文ずつ、<br>世界がひらく。</h1>
+    <p class="hero-sub">あなたが書いた続きをAIが受け取り、またあなたへ。<br>想像のバトンをつないで、ふたりだけの物語を育てよう。</p>
+
+    <div class="setup-card">
+      <div class="field">
+        <div class="field-label">物語のジャンル</div>
+        <select id="genreSelect">
+          <option value="ファンタジー">ファンタジー</option>
+          <option value="ミステリー">ミステリー</option>
+          <option value="恋愛">恋愛</option>
+          <option value="SF">SF</option>
+          <option value="日常">日常</option>
+          <option value="ホラー">ホラー</option>
+          <option value="冒険">冒険</option>
+          <option value="詩的・幻想">詩的・幻想</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">ターン数</div>
+        <div class="turn-grid">
+          <button class="turn-opt" onclick="pickTurns(8,this)">8</button>
+          <button class="turn-opt on" onclick="pickTurns(12,this)">12</button>
+          <button class="turn-opt" onclick="pickTurns(16,this)">16</button>
+          <button class="turn-opt" onclick="pickTurns(20,this)">20</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <button class="start-btn" onclick="startStory()">物語をはじめる →</button>
+    </div>
+  </div>
+
+  <!-- STORY -->
+  <div id="story" class="story">
+    <div class="story-top">
+      <div>
+        <div class="story-eyebrow">NOW WRITING</div>
+        <div id="storyGenre" class="story-genre"></div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+    </div>
+
+    <div class="feed" id="feed"></div>
+
+    <div class="input-box" id="inputBox">
+      <div class="input-label">あなたの番です</div>
+      <textarea id="storyInput" rows="3" placeholder="物語の続きを、一文で…" maxlength="120" oninput="updateChar()"></textarea>
+      <div class="char-hint"><span id="charCount">0</span> / 120</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-restart" onclick="restartStory()" title="最初からやり直す">↩ やり直す</button>
+      <button class="btn-send" id="sendBtn" onclick="sendLine()">AIへ渡す →</button>
+      <button class="btn-end" onclick="endStory()">ここで終わりにする</button>
+    </div>
+  </div>
+
+  <!-- FINISH -->
+  <div id="finish" class="finish">
+    <div class="finish-card">
+      <div class="finish-eyebrow">タイトルを選んでください</div>
+      <div id="titleOpts" class="title-opts">
+        <div class="loading-line">
+          <div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          タイトルを考えています
+        </div>
+      </div>
+      <div class="complete-story" id="completeStory" style="display:none">
+        <div class="complete-title" id="completeTitle">—</div>
+        <div class="complete-body" id="completeBody"></div>
+      </div>
+      <button class="btn-copy" id="copyBtn" onclick="copyStory()" disabled>
+        ✦ 物語をコピー
+      </button>
+    </div>
+    <button class="btn-new" onclick="newStory()">+ 新しい物語をはじめる</button>
+  </div>
+</div>
+
+<script>
+const s = {
+  genre: 'ファンタジー',
+  maxTurns: 12,
+  turn: 0,
+  entries: [],
+  busy: false,
+  selectedTitle: ''
+};
+
+function pickTurns(n, el) {
+  s.maxTurns = n;
+  document.querySelectorAll('.turn-opt').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function show(id) {
+  ['setup','story','finish'].forEach(x => {
+    document.getElementById(x).style.display = x === id ? 'block' : 'none';
+  });
+}
+
+function startStory() {
+  s.genre = document.getElementById('genreSelect').value;
+  s.turn = 0; s.entries = []; s.selectedTitle = '';
+  document.getElementById('storyGenre').textContent = s.genre;
+  document.getElementById('feed').innerHTML = '';
+  document.getElementById('storyInput').value = '';
+  updateChar();
+  document.getElementById('inputBox').style.opacity = '1';
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('inputBox').style.display = 'block';
+  document.querySelector('.btn-row').style.display = 'flex';
+  updateMeta();
+  show('story');
+}
+
+function restartStory() {
+  if (!confirm('物語をやり直しますか？')) return;
+  show('setup');
+  document.getElementById('headerMeta').textContent = '';
+}
+
+function updateMeta() {
+  document.getElementById('headerMeta').textContent = `${s.turn} / ${s.maxTurns} turns`;
+  const pct = (s.turn / s.maxTurns) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function updateChar() {
+  document.getElementById('charCount').textContent = document.getElementById('storyInput').value.length;
+}
+
+function appendEntry(who, text, turnNum) {
+  const feed = document.getElementById('feed');
+  const d = document.createElement('div');
+  d.className = 'entry';
+  const isYou = who === 'you';
+  d.innerHTML = `
+    <div class="av ${isYou ? 'av-you' : 'av-ai'}">${isYou ? 'あ' : 'AI'}</div>
+    <div class="entry-inner">
+      <div class="entry-who">${isYou ? 'あなた' : 'AIパートナー'} · ${turnNum}役目</div>
+      <div class="entry-text">${text}</div>
+    </div>`;
+  feed.appendChild(d);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function showDots() {
+  const feed = document.getElementById('feed');
+  const d = document.createElement('div');
+  d.className = 'entry'; d.id = 'dots';
+  d.innerHTML = `<div class="av av-ai">AI</div><div class="entry-inner"><div class="entry-who">AIパートナー</div><div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  feed.appendChild(d);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function removeDots() { const d = document.getElementById('dots'); if (d) d.remove(); }
+
+async function sendLine() {
+  const input = document.getElementById('storyInput');
+  const text = input.value.trim();
+  if (!text || s.busy) return;
+
+  s.turn++;
+  s.entries.push({ who: 'you', text });
+  appendEntry('you', text, s.turn);
+  input.value = ''; updateChar();
+  updateMeta();
+
+  s.busy = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('inputBox').style.opacity = '0.5';
+  showDots();
+
+  const history = s.entries.map(e => (e.who === 'you' ? 'あなた' : 'AI') + ': ' + e.text).join('\n');
+  const near = s.maxTurns - s.turn <= 2;
+
+  try {
+    const res = await fetch('/api/relay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history, genre: s.genre, nearEnd: near })
+    });
+    const data = await res.json();
+    const aiText = data.text;
+    removeDots();
+    s.turn++;
+    s.entries.push({ who: 'ai', text: aiText });
+    appendEntry('ai', aiText, s.turn);
+    updateMeta();
+
+    if (s.turn >= s.maxTurns) {
+      document.getElementById('inputBox').style.display = 'none';
+      document.querySelector('.btn-row').style.display = 'none';
+      setTimeout(endStory, 600);
+    } else {
+      document.getElementById('inputBox').style.opacity = '1';
+      document.getElementById('sendBtn').disabled = false;
+    }
+  } catch(e) {
+    removeDots();
+    document.getElementById('inputBox').style.opacity = '1';
+    document.getElementById('sendBtn').disabled = false;
+  }
+  s.busy = false;
+}
+
+async function endStory() {
+  if (s.entries.length === 0) { show('setup'); return; }
+  show('finish');
+  document.getElementById('titleOpts').innerHTML = `<div class="loading-line"><div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div> タイトルを考えています</div>`;
+  document.getElementById('completeStory').style.display = 'none';
+  document.getElementById('copyBtn').disabled = true;
+
+  const storyText = s.entries.map(e => e.text).join('\n');
+  document.getElementById('completeBody').textContent = storyText;
+
+  try {
+    const res = await fetch('/api/relay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'title', story: storyText, genre: s.genre })
+    });
+    const data = await res.json();
+    renderTitles(data.titles || ['物語のかけら', '名もなき夜に', '続きの先へ']);
+  } catch(e) {
+    renderTitles(['物語のかけら', '名もなき夜に', '続きの先へ']);
+  }
+}
+
+function renderTitles(titles) {
+  const wrap = document.getElementById('titleOpts');
+  wrap.innerHTML = '';
+  titles.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'title-opt';
+    b.textContent = t;
+    b.onclick = () => {
+      document.querySelectorAll('.title-opt').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      s.selectedTitle = t;
+      document.getElementById('completeTitle').textContent = t;
+      document.getElementById('completeStory').style.display = 'block';
+      document.getElementById('copyBtn').disabled = false;
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function copyStory() {
+  const text = `【${s.selectedTitle}】\n\n` + s.entries.map(e => e.text).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ コピーしました';
+    setTimeout(() => { btn.textContent = '✦ 物語をコピー'; }, 2000);
+  });
+}
+
+function newStory() {
+  document.getElementById('headerMeta').textContent = '';
+  show('setup');
+}
+</script>
+</body>
+</html>
